@@ -9,7 +9,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import lombok.Getter;
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
 import net.runelite.http.api.RuneLiteAPI;
 import org.slf4j.Logger;
@@ -17,12 +16,10 @@ import org.slf4j.LoggerFactory;
 
 public class SlayerHistoryLocalStorage
 {
-	private static final String FILE_EXTENSION = ".log";
 	private static final File SLAYER_HISTORY_FOLDER = new File(RUNELITE_DIR, "slayer-history");
-	private static final String SLAYER_HISTORY_FILE = "tasks";
+	private static final String SLAYER_HISTORY_FILE = "tasks.log";
 	private static final Logger log = LoggerFactory.getLogger(SlayerHistoryLocalStorage.class);
 	private File logFile;
-	@Getter
 	private String accountFolderName;
 
 	@Inject
@@ -46,7 +43,7 @@ public class SlayerHistoryLocalStorage
 
 	private File getFile()
 	{
-		return new File(logFile, SLAYER_HISTORY_FILE + FILE_EXTENSION);
+		return new File(logFile, SLAYER_HISTORY_FILE);
 	}
 
 	public synchronized ArrayList<SlayerHistoryRecord> loadSlayerHistoryRecords()
@@ -88,7 +85,7 @@ public class SlayerHistoryLocalStorage
 			file.append(dataAsString);
 			file.newLine();
 			file.close();
-			log.info("Added new task: {}", dataAsString);
+			log.debug("Added new task: {}", dataAsString);
 		}
 		catch (IOException e)
 		{

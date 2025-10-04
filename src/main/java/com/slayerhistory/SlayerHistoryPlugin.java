@@ -1,3 +1,29 @@
+/*
+ * Copyright (c) 2017, Tyler <https://github.com/tylerthardy>
+ * Copyright (c) 2018, Shaun Dreclin <shaundreclin@gmail.com>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package com.slayerhistory;
 
 import com.google.inject.Inject;
@@ -47,7 +73,6 @@ public class SlayerHistoryPlugin extends Plugin
 		8, "Konar quo Maten",
 		9, "Spria"
 	);
-	private static final int TICKS_TO_WAIT = 3;  // avoid checking varbit stuff immediately upon login
 
 	@Inject
 	private Client client;
@@ -106,24 +131,16 @@ public class SlayerHistoryPlugin extends Plugin
 		}
 	}
 
-	private synchronized void loadPreviousTasks()
-	{
-		panel.clearAllTasksView();
-		ArrayList<SlayerHistoryRecord> taskHistory = localStorage.loadSlayerHistoryRecords();
-		if (!taskHistory.isEmpty())
-		{
-			taskHistory.forEach(panel::addRecord);
-		}
-		else
-		{
-			panel.clearAllTasksView();
-		}
-	}
-
 	@Override
 	protected void shutDown() throws Exception
 	{
 		clientToolbar.removeNavigation(navButton);
+	}
+
+	@Provides
+	SlayerHistoryConfig provideConfig(ConfigManager configManager)
+	{
+		return configManager.getConfig(SlayerHistoryConfig.class);
 	}
 
 	@Subscribe
@@ -141,28 +158,6 @@ public class SlayerHistoryPlugin extends Plugin
 		}
 	}
 
-	@Provides
-	SlayerHistoryConfig provideConfig(ConfigManager configManager)
-	{
-		return configManager.getConfig(SlayerHistoryConfig.class);
-	}
-
-	public void addTask()
-	{
-		SlayerHistoryRecord record = new SlayerHistoryRecord(
-			Instant.now().toEpochMilli(),
-			taskMaster,
-			taskName,
-			taskInitialQuantity
-		);
-		localStorage.addSlayerHistoryRecord(record);
-		panel.addRecord(record);
-
-		taskMaster = null;
-		taskName = null;
-		taskInitialQuantity = -1;
-	}
-
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged gameStateChanged)
 	{
@@ -175,6 +170,27 @@ public class SlayerHistoryPlugin extends Plugin
 				break;
 			case LOGGED_IN:
 				updateFolderName();
+		}
+	}
+
+	@Subscribe
+	public void onGameTick(GameTick gameTick)
+	{
+		loggingIn = false;
+	}
+
+	@Subscribe
+	public void onVarbitChanged(VarbitChanged varbitChanged)
+	{
+		int varpId = varbitChanged.getVarpId();
+		int varbitId = varbitChanged.getVarbitId();
+		if (varpId == VarPlayerID.SLAYER_COUNT
+			|| varpId == VarPlayerID.SLAYER_COUNT_ORIGINAL
+			|| varpId == VarPlayerID.SLAYER_TARGET
+			|| varbitId == VarbitID.SLAYER_MASTER
+		)
+		{
+			clientThread.invokeLater(this::updateActiveTaskDetails);
 		}
 	}
 
@@ -191,6 +207,43 @@ public class SlayerHistoryPlugin extends Plugin
 		{
 			loadPreviousTasks();
 		}
+	}
+
+	private synchronized void loadPreviousTasks()
+	{
+		panel.clearAllTasksView();
+		ArrayList<SlayerHistoryRecord> taskHistory = localStorage.loadSlayerHistoryRecords();
+		if (!taskHistory.isEmpty())
+		{
+			taskHistory.forEach(panel::addRecord);
+		}
+		else
+		{
+			panel.clearAllTasksView();
+		}
+	}
+
+	public void addTask()
+	{
+		if (taskMaster == null || taskName == null || taskInitialQuantity == -1)
+		{
+			log.warn("Tried to submit empty task");
+		}
+		else
+		{
+			SlayerHistoryRecord record = new SlayerHistoryRecord(
+				Instant.now().toEpochMilli(),
+				taskMaster,
+				taskName,
+				taskInitialQuantity
+			);
+			localStorage.addSlayerHistoryRecord(record);
+			panel.addRecord(record);
+		}
+
+		taskMaster = null;
+		taskName = null;
+		taskInitialQuantity = -1;
 	}
 
 	private void updateActiveTaskDetails()
@@ -229,33 +282,12 @@ public class SlayerHistoryPlugin extends Plugin
 			taskInitialQuantity = client.getVarpValue(VarPlayerID.SLAYER_COUNT_ORIGINAL);
 			taskName = (String) client.getDBTableField(taskDBRow, DBTableID.SlayerTask.COL_NAME_UPPERCASE, 0)[0];
 
-			log.info("{}, {}, {}/{}", taskName, taskMaster, taskQuantity, taskInitialQuantity);
+			log.debug("{}, {}, {}/{}", taskName, taskMaster, newTaskQuantity, taskInitialQuantity);
 		}
 		else if (taskQuantity > 0 && !loggingIn)  // task was previously active, now it's not => task complete
 		{
 			addTask();
 		}
 		taskQuantity = newTaskQuantity;
-	}
-
-	@Subscribe
-	public void onVarbitChanged(VarbitChanged varbitChanged)
-	{
-		int varpId = varbitChanged.getVarpId();
-		int varbitId = varbitChanged.getVarbitId();
-		if (varpId == VarPlayerID.SLAYER_COUNT
-			|| varpId == VarPlayerID.SLAYER_COUNT_ORIGINAL
-			|| varpId == VarPlayerID.SLAYER_TARGET
-			|| varbitId == VarbitID.SLAYER_MASTER
-		)
-		{
-			clientThread.invokeLater(this::updateActiveTaskDetails);
-		}
-	}
-
-	@Subscribe
-	public void onGameTick(GameTick gameTick)
-	{
-		loggingIn = false;
 	}
 }
