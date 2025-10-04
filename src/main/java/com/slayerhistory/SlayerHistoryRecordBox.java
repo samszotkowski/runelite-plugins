@@ -5,7 +5,10 @@ import com.slayerhistory.localstorage.SlayerHistoryRecord;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -14,10 +17,13 @@ import net.runelite.client.callback.ClientThread;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
-import net.runelite.client.util.AsyncBufferedImage;
+import net.runelite.client.util.ImageUtil;
 
 public class SlayerHistoryRecordBox extends JPanel
 {
+	private static final String DWARF_IMAGE_PATH = "null.png";
+	private static final String DWARF_TASK_NAME = "dwarves";
+
 	private final SlayerHistoryPanel panel;
 	private final SlayerHistoryRecord record;
 	private final ItemManager itemManager;
@@ -90,8 +96,27 @@ public class SlayerHistoryRecordBox extends JPanel
 
 		clientThread.invokeLater(() ->
 		{
-			AsyncBufferedImage taskImage = itemManager.getImage(Task.getItemSpriteId(record.taskName), record.taskQuantity, true);
-			taskImage.addTo(taskIconLabel);
+			BufferedImage taskImage = itemManager.getImage(TaskIcon.getItemSpriteId(record.taskName), record.taskQuantity, true);
+
+			// custom image just for dwarves. combining with empty item image bc that handles the quantity superscript
+			if (record.taskName.equalsIgnoreCase(DWARF_TASK_NAME)) {
+				BufferedImage dwarfImage = ImageUtil.loadImageResource(getClass(), DWARF_IMAGE_PATH);
+				BufferedImage combined = new BufferedImage(taskImage.getWidth(), taskImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
+
+				int dwarfOffsetX = 2;
+				int dwarfOffsetY = (taskImage.getHeight() - dwarfImage.getHeight()) / 2;
+
+				Graphics g = combined.createGraphics();
+				g.drawImage(dwarfImage, dwarfOffsetX, dwarfOffsetY, null);
+				g.drawImage(taskImage, 0, 0, null);
+				g.dispose();
+
+				taskIconLabel.setIcon(new ImageIcon(combined));
+			}
+			else
+			{
+				taskIconLabel.setIcon(new ImageIcon(taskImage));
+			}
 		});
 	}
 }
