@@ -24,7 +24,6 @@ public class SlayerHistoryRecordBox extends JPanel
 	private final ClientThread clientThread;
 
 	private final JLabel taskNameLabel = new JLabel();
-	private final JLabel taskQtyLabel = new JLabel();
 	private final JLabel taskMasterLabel = new JLabel();
 	private final JLabel taskCompletionTimeLabel = new JLabel();
 	private final JLabel taskIconLabel = new JLabel();
@@ -49,7 +48,7 @@ public class SlayerHistoryRecordBox extends JPanel
 		JPanel imageBox = new JPanel();
 		imageBox.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 		imageBox.setLayout(new BorderLayout());
-		imageBox.setBorder(new EmptyBorder(0, 8, 0, 2));
+		imageBox.setBorder(new EmptyBorder(0, 8, 0, 0));
 		imageBox.add(taskIconLabel);
 
 		// words on the right of the card
@@ -58,13 +57,6 @@ public class SlayerHistoryRecordBox extends JPanel
 		taskInfo.setLayout(new BoxLayout(taskInfo, BoxLayout.Y_AXIS));
 		taskInfo.setBorder(new EmptyBorder(5, 0, 5, 0));
 
-		JPanel taskNameQtyPanel = new JPanel();
-		taskNameQtyPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-		taskNameQtyPanel.setLayout(new BoxLayout(taskNameQtyPanel, BoxLayout.X_AXIS));
-		taskNameQtyPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-		taskNameQtyPanel.add(taskNameLabel);
-		taskNameQtyPanel.add(taskQtyLabel);
-
 		JPanel taskMasterCompletionPanel = new JPanel();
 		taskMasterCompletionPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 		taskMasterCompletionPanel.setLayout(new BoxLayout(taskMasterCompletionPanel, BoxLayout.Y_AXIS));
@@ -72,18 +64,16 @@ public class SlayerHistoryRecordBox extends JPanel
 		taskMasterCompletionPanel.add(taskMasterLabel);
 		taskMasterCompletionPanel.add(taskCompletionTimeLabel);
 
-		taskInfo.add(taskNameQtyPanel);
+		taskInfo.add(taskNameLabel);
 		taskInfo.add(taskMasterCompletionPanel);
 
 		this.add(imageBox, BorderLayout.WEST);
 		this.add(taskInfo);
 
 		taskNameLabel.setFont(FontManager.getRunescapeBoldFont());
-		taskQtyLabel.setFont(FontManager.getRunescapeSmallFont());
 		taskMasterLabel.setFont(FontManager.getRunescapeSmallFont());
 		taskCompletionTimeLabel.setFont(FontManager.getRunescapeSmallFont());
 
-		taskQtyLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
 		taskMasterLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
 		taskCompletionTimeLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
 
@@ -95,13 +85,12 @@ public class SlayerHistoryRecordBox extends JPanel
 	void update()
 	{
 		taskNameLabel.setText(record.taskName);
-		taskQtyLabel.setText(String.format(" x %d", record.taskQuantity));
 		taskMasterLabel.setText(record.taskMaster);
 		taskCompletionTimeLabel.setText(panel.shortTimeFormat.format(record.taskCompletionTime));
 
 		clientThread.invokeLater(() ->
 		{
-			AsyncBufferedImage taskImage = itemManager.getImage(Task.getItemSpriteId(record.taskName));
+			AsyncBufferedImage taskImage = itemManager.getImage(Task.getItemSpriteId(record.taskName), record.taskQuantity, true);
 			taskImage.addTo(taskIconLabel);
 		});
 	}

@@ -3,7 +3,6 @@ package com.slayerhistory;
 import com.google.inject.Inject;
 import com.slayerhistory.localstorage.SlayerHistoryRecord;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import javax.swing.BoxLayout;
@@ -15,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ColorScheme;
+import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
 
 @Slf4j
@@ -22,6 +22,7 @@ public class SlayerHistoryPanel extends PluginPanel
 {
 	private final ArrayList<SlayerHistoryRecordBox> recordBoxes = new ArrayList<SlayerHistoryRecordBox>();
 	private final JPanel recordBoxPanel = new JPanel();
+	private final JLabel tasksLoggedLabel = new JLabel("Tasks logged: 0");
 	private final SlayerHistoryConfig config;
 	public SimpleDateFormat shortTimeFormat = new SimpleDateFormat("MMM dd, h:mm a");
 	SlayerHistoryPlugin plugin;
@@ -37,15 +38,21 @@ public class SlayerHistoryPanel extends PluginPanel
 		this.clientThread = clientThread;
 		this.itemManager = itemManager;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		setBorder(new EmptyBorder(6, 6, 6, 6));  // border that goes around record box cards
+		setBorder(new EmptyBorder(6, 6, 6, 6));
 		setBackground(ColorScheme.DARK_GRAY_COLOR);
 
-		JLabel titleLabel = new JLabel("Slayer History");
-		titleLabel.setForeground(Color.WHITE);
-
 		JPanel titlePanel = new JPanel(new BorderLayout());
-		titlePanel.setBorder(new EmptyBorder(5, 3, 4, 0));
+		titlePanel.setBorder(new EmptyBorder(5, 8, 5, 8));
+		titlePanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+
+		JLabel titleLabel = new JLabel("Slayer History");
+
+		tasksLoggedLabel.setBorder(new EmptyBorder(2, 0, 0, 0));
+		tasksLoggedLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+		tasksLoggedLabel.setFont(FontManager.getRunescapeSmallFont());
+
 		titlePanel.add(titleLabel, BorderLayout.WEST);
+		titlePanel.add(tasksLoggedLabel, BorderLayout.EAST);
 
 		recordBoxPanel.setLayout(new BoxLayout(recordBoxPanel, BoxLayout.Y_AXIS));
 
@@ -60,6 +67,7 @@ public class SlayerHistoryPanel extends PluginPanel
 		recordBoxPanel.removeAll();
 		recordBoxes.clear();
 		recordBoxPanel.repaint();
+		updateTasksLoggedLabel();
 	}
 
 	public void addRecord(SlayerHistoryRecord record)
@@ -68,6 +76,7 @@ public class SlayerHistoryPanel extends PluginPanel
 			SlayerHistoryRecordBox recordBox = new SlayerHistoryRecordBox(this, record, clientThread, itemManager);
 			recordBoxPanel.add(recordBox, 0);
 			recordBoxes.add(recordBox);
+			updateTasksLoggedLabel();
 		});
 	}
 
@@ -86,5 +95,11 @@ public class SlayerHistoryPanel extends PluginPanel
 	public void updateAllRecordBoxes()
 	{
 		recordBoxes.forEach(SlayerHistoryRecordBox::update);
+		updateTasksLoggedLabel();
+	}
+
+	public void updateTasksLoggedLabel()
+	{
+		tasksLoggedLabel.setText(String.format("Tasks logged: %,d", recordBoxes.size()));
 	}
 }

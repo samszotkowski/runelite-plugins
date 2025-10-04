@@ -23,8 +23,6 @@ public class SlayerHistoryLocalStorage
 	private static final Logger log = LoggerFactory.getLogger(SlayerHistoryLocalStorage.class);
 	private File logFile;
 	@Getter
-	private int numberOfLoggedTasks = 0;
-	@Getter
 	private String accountFolderName;
 
 	@Inject
@@ -77,7 +75,6 @@ public class SlayerHistoryLocalStorage
 			log.warn("IOException for file {}: {}", file.getName(), e.getMessage());
 		}
 
-		numberOfLoggedTasks = data.size();
 		return data;
 	}
 
@@ -91,7 +88,7 @@ public class SlayerHistoryLocalStorage
 			file.append(dataAsString);
 			file.newLine();
 			file.close();
-			numberOfLoggedTasks += 1;
+			log.info("Added new task: {}", dataAsString);
 		}
 		catch (IOException e)
 		{
