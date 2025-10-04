@@ -187,7 +187,7 @@ public class SlayerHistoryPlugin extends Plugin
 			folderName += "-" + Text.titleCase(profileType);
 		}
 
-		if (localStorage.setAccountFolderName(folderName) || loggingIn)
+		if (localStorage.setAccountFolderName(folderName))
 		{
 			loadPreviousTasks();
 		}
