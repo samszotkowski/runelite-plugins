@@ -37,7 +37,7 @@ class TaskIcon
 		Map.entry("the alchemical hydra", ItemID.HYDRAPET),
 		Map.entry("ankou", ItemID.ANKOU_HEAD),
 		Map.entry("araxxor", ItemID.ARAXXORPET),
-		Map.entry("araxytes", ItemID.POH_ARAXYTE_HEAD),
+		Map.entry("araxytes", ItemID.POG_SLAYER_DUMMY_ARAXYTES),
 		Map.entry("aviansies", ItemID.ARCEUUS_CORPSE_AVIANSIE_INITIAL),
 		Map.entry("bandits", ItemID.PICKPOCKET_GUIDE_DESERT_BANDIT),
 		Map.entry("banshees", ItemID.SLAYERGUIDE_BANSHEE),
@@ -144,7 +144,7 @@ class TaskIcon
 		Map.entry("scabarites", ItemID.NTK_SCARAB_GOLD),
 		Map.entry("scorpia", ItemID.SCORPIA_PET),
 		Map.entry("scorpions", ItemID.ARCEUUS_CORPSE_SCORPION_INITIAL),
-		Map.entry("sea snakes", ItemID.HUNDRED_ILM_SNAKE_CORPSE),
+		Map.entry("sea snakes", ItemID.HUNDRED_ILM_SNAKE_CORPSE), // get slayer guide id
 		Map.entry("shades", ItemID.BLACKROBETOP),
 		Map.entry("shadow warriors", ItemID.BLACK_FULL_HELM),
 		Map.entry("skeletal wyverns", ItemID.SLAYERGUIDE_SKELETALWYVERN),
@@ -161,7 +161,7 @@ class TaskIcon
 		Map.entry("trolls", ItemID.POH_TROLL),
 		Map.entry("turoth", ItemID.SLAYERGUIDE_TUROTH),
 		Map.entry("tzhaar", ItemID.ARCEUUS_CORPSE_TZHAAR_INITIAL),
-		Map.entry("vampyres", ItemID.STAKE),
+		Map.entry("vampyres", ItemID.SLAYERGUIDE_VAMPYRE),
 		Map.entry("vardorvis", ItemID.VARDORVISPET),
 		Map.entry("venenatis", ItemID.VENENATIS_PET),
 		Map.entry("vet'ion", ItemID.VETION_PET),
@@ -175,7 +175,11 @@ class TaskIcon
 		Map.entry("commander zilyana", ItemID.SARADOMINPET),
 		Map.entry("zombies", ItemID.TRICK_OR_TREAT_HEAD),
 		Map.entry("tzkal-zuk", ItemID.INFERNOPET_ZUK),
-		Map.entry("zulrah", ItemID.SNAKEPET)
+		Map.entry("zulrah", ItemID.SNAKEPET),
+		Map.entry("aquanites", ItemID.SLAYERGUIDE_AQUANITE),
+		Map.entry("gryphons", ItemID.GRYPHON_FEATHER_5),
+		Map.entry("the shellbane gryphon", ItemID.SLAYERGUIDE_GRYPHON),
+		Map.entry("frost dragons", ItemID.FROST_DRAGON_BONES)
 	);
 
 	static int getItemSpriteId(String taskName)
