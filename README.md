@@ -6,3 +6,5 @@ A simple plugin to record completed Slayer tasks. The tasks will appear in the s
 ``.runelite/slayer-history/{account hash}/tasks.log``
 
 Each combination of account and game mode (e.g., Leagues, Deadman) will have a different account hash folder. If you wish to clear your history, simply delete the `tasks.log` file within.
+
+In the settings there is an option to change the date format, and a toggle to show/hide Slayer tasks that were skipped.

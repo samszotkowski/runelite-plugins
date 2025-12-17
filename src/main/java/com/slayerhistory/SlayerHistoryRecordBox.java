@@ -3,6 +3,7 @@ package com.slayerhistory;
 import com.google.inject.Inject;
 import com.slayerhistory.localstorage.SlayerHistoryRecord;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -13,6 +14,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import net.runelite.api.Constants;
+import net.runelite.api.gameval.ItemID;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ColorScheme;
@@ -90,6 +92,10 @@ public class SlayerHistoryRecordBox extends JPanel
 
 	void update()
 	{
+		if (record.skipped)
+		{
+			taskNameLabel.setForeground(new Color(183, 38, 21));
+		}
 		taskNameLabel.setText(record.taskName);
 		taskMasterLabel.setText(record.taskMaster);
 		taskCompletionTimeLabel.setText(panel.shortTimeFormat.format(record.taskCompletionTime));
@@ -99,7 +105,8 @@ public class SlayerHistoryRecordBox extends JPanel
 			BufferedImage taskImage = itemManager.getImage(TaskIcon.getItemSpriteId(record.taskName), record.taskQuantity, true);
 
 			// custom image just for dwarves. combining with empty item image bc that handles the quantity superscript
-			if (record.taskName.equalsIgnoreCase(DWARF_TASK_NAME)) {
+			if (record.taskName.equalsIgnoreCase(DWARF_TASK_NAME))
+			{
 				BufferedImage dwarfImage = ImageUtil.loadImageResource(getClass(), DWARF_IMAGE_PATH);
 				BufferedImage combined = new BufferedImage(taskImage.getWidth(), taskImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
 
@@ -112,6 +119,11 @@ public class SlayerHistoryRecordBox extends JPanel
 				g.dispose();
 
 				taskIconLabel.setIcon(new ImageIcon(combined));
+			}
+			else if (record.skipped)
+			{
+				BufferedImage nothingImage = itemManager.getImage(ItemID.BANK_FILLER, record.taskQuantity, true);
+				taskIconLabel.setIcon(new ImageIcon(nothingImage));
 			}
 			else
 			{

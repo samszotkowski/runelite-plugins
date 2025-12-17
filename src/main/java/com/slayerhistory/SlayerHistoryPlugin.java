@@ -99,6 +99,7 @@ public class SlayerHistoryPlugin extends Plugin
 	private String taskMaster;
 	private int taskInitialQuantity;
 	private int taskQuantity;
+	private int slayerPoints;
 
 	private boolean loggingIn;
 
@@ -127,7 +128,7 @@ public class SlayerHistoryPlugin extends Plugin
 
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
-			clientThread.invoke(this::updateActiveTaskDetails);
+			clientThread.invoke(() -> updateActiveTaskDetails(false));
 		}
 	}
 
@@ -155,6 +156,10 @@ public class SlayerHistoryPlugin extends Plugin
 		if (configChanged.getKey().equals("logTimeFormat"))
 		{
 			SwingUtilities.invokeLater(panel::updateAllRecordBoxes);
+		}
+		else if (configChanged.getKey().equals("showSkippedTasks"))
+		{
+			loadPreviousTasks();
 		}
 	}
 
@@ -184,13 +189,23 @@ public class SlayerHistoryPlugin extends Plugin
 	{
 		int varpId = varbitChanged.getVarpId();
 		int varbitId = varbitChanged.getVarbitId();
-		if (varpId == VarPlayerID.SLAYER_COUNT
+		if (varbitId == VarbitID.SLAYER_POINTS)
+		{
+			int newPoints = varbitChanged.getValue();
+			int pointsDiff = slayerPoints - newPoints;
+			if (pointsDiff == 30)
+			{
+				clientThread.invokeLater(() -> updateActiveTaskDetails(true));
+			}
+			slayerPoints = newPoints;
+		}
+		else if (varpId == VarPlayerID.SLAYER_COUNT
 			|| varpId == VarPlayerID.SLAYER_COUNT_ORIGINAL
 			|| varpId == VarPlayerID.SLAYER_TARGET
 			|| varbitId == VarbitID.SLAYER_MASTER
 		)
 		{
-			clientThread.invokeLater(this::updateActiveTaskDetails);
+			clientThread.invokeLater(() -> updateActiveTaskDetails(false));
 		}
 	}
 
@@ -223,7 +238,7 @@ public class SlayerHistoryPlugin extends Plugin
 		}
 	}
 
-	public void addTask()
+	public void addTask(boolean skipped)
 	{
 		if (taskMaster == null || taskName == null || taskInitialQuantity == -1)
 		{
@@ -235,7 +250,8 @@ public class SlayerHistoryPlugin extends Plugin
 				Instant.now().toEpochMilli(),
 				taskMaster,
 				taskName,
-				taskInitialQuantity
+				taskInitialQuantity,
+				skipped
 			);
 			localStorage.addSlayerHistoryRecord(record);
 			panel.addRecord(record);
@@ -246,7 +262,7 @@ public class SlayerHistoryPlugin extends Plugin
 		taskInitialQuantity = -1;
 	}
 
-	private void updateActiveTaskDetails()
+	private void updateActiveTaskDetails(boolean skipped)
 	{
 		int newTaskQuantity = client.getVarpValue(VarPlayerID.SLAYER_COUNT);
 		if (newTaskQuantity > 0)
@@ -286,7 +302,7 @@ public class SlayerHistoryPlugin extends Plugin
 		}
 		else if (taskQuantity > 0 && !loggingIn)  // task was previously active, now it's not => task complete
 		{
-			addTask();
+			addTask(skipped);
 		}
 		taskQuantity = newTaskQuantity;
 	}

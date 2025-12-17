@@ -72,12 +72,15 @@ public class SlayerHistoryPanel extends PluginPanel
 
 	public void addRecord(SlayerHistoryRecord record)
 	{
-		SwingUtilities.invokeLater(() -> {
-			SlayerHistoryRecordBox recordBox = new SlayerHistoryRecordBox(this, record, clientThread, itemManager);
-			recordBoxPanel.add(recordBox, 0);
-			recordBoxes.add(recordBox);
-			updateTasksLoggedLabel();
-		});
+		if (config.showSkippedTasks() || !record.isSkipped())
+		{
+			SwingUtilities.invokeLater(() -> {
+				SlayerHistoryRecordBox recordBox = new SlayerHistoryRecordBox(this, record, clientThread, itemManager);
+				recordBoxPanel.add(recordBox, 0);
+				recordBoxes.add(recordBox);
+				updateTasksLoggedLabel();
+			});
+		}
 	}
 
 	public void updateConfig()

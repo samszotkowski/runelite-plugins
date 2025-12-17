@@ -18,4 +18,14 @@ public interface SlayerHistoryConfig extends Config
 	{
 		return TimeFormat.TIME_24H;
 	}
+
+	@ConfigItem(
+		keyName = "showSkippedTasks",
+		name = "Show skipped tasks",
+		description = "Show/hide skipped tasks on the side panel."
+	)
+	default boolean showSkippedTasks()
+	{
+		return true;
+	}
 }
