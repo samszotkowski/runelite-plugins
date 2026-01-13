@@ -144,7 +144,7 @@ class TaskIcon
 		Map.entry("scabarites", ItemID.NTK_SCARAB_GOLD),
 		Map.entry("scorpia", ItemID.SCORPIA_PET),
 		Map.entry("scorpions", ItemID.ARCEUUS_CORPSE_SCORPION_INITIAL),
-		Map.entry("sea snakes", ItemID.HUNDRED_ILM_SNAKE_CORPSE), // get slayer guide id
+		Map.entry("sea snakes", ItemID.CERT_FISHING_SPOT_ICON_DUMMY),
 		Map.entry("shades", ItemID.BLACKROBETOP),
 		Map.entry("shadow warriors", ItemID.BLACK_FULL_HELM),
 		Map.entry("skeletal wyverns", ItemID.SLAYERGUIDE_SKELETALWYVERN),

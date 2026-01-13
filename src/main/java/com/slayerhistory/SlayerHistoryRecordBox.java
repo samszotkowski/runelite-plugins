@@ -8,6 +8,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -35,6 +36,7 @@ public class SlayerHistoryRecordBox extends JPanel
 	private final JLabel taskMasterLabel = new JLabel();
 	private final JLabel taskCompletionTimeLabel = new JLabel();
 	private final JLabel taskIconLabel = new JLabel();
+	private final JLabel taskStreakLabel = new JLabel();
 
 	@Inject
 	SlayerHistoryRecordBox(SlayerHistoryPanel panel, SlayerHistoryRecord record, ClientThread clientThread, ItemManager itemManager)
@@ -65,15 +67,28 @@ public class SlayerHistoryRecordBox extends JPanel
 		taskInfo.setLayout(new BoxLayout(taskInfo, BoxLayout.Y_AXIS));
 		taskInfo.setBorder(new EmptyBorder(5, 0, 5, 0));
 
-		JPanel taskMasterCompletionPanel = new JPanel();
-		taskMasterCompletionPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-		taskMasterCompletionPanel.setLayout(new BoxLayout(taskMasterCompletionPanel, BoxLayout.Y_AXIS));
-		taskMasterCompletionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-		taskMasterCompletionPanel.add(taskMasterLabel);
-		taskMasterCompletionPanel.add(taskCompletionTimeLabel);
+		JPanel taskMasterDateStreakPanel = new JPanel();
+		taskMasterDateStreakPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		taskMasterDateStreakPanel.setLayout(new BoxLayout(taskMasterDateStreakPanel, BoxLayout.Y_AXIS));
+
+		JPanel dateStreakPanel = new JPanel();
+		dateStreakPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		dateStreakPanel.setLayout(new BoxLayout(dateStreakPanel, BoxLayout.X_AXIS));
+		dateStreakPanel.setBorder(new EmptyBorder(0, 0, 0, 7));
+		taskCompletionTimeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		taskStreakLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+		dateStreakPanel.add(taskCompletionTimeLabel);
+		dateStreakPanel.add(Box.createHorizontalGlue());
+		dateStreakPanel.add(taskStreakLabel);
+
+		taskMasterLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		dateStreakPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+		taskMasterDateStreakPanel.add(taskMasterLabel);
+		taskMasterDateStreakPanel.add(dateStreakPanel);
 
 		taskInfo.add(taskNameLabel);
-		taskInfo.add(taskMasterCompletionPanel);
+		taskInfo.add(taskMasterDateStreakPanel);
 
 		this.add(imageBox, BorderLayout.WEST);
 		this.add(taskInfo);
@@ -81,6 +96,7 @@ public class SlayerHistoryRecordBox extends JPanel
 		taskNameLabel.setFont(FontManager.getRunescapeBoldFont());
 		taskMasterLabel.setFont(FontManager.getRunescapeSmallFont());
 		taskCompletionTimeLabel.setFont(FontManager.getRunescapeSmallFont());
+		taskStreakLabel.setFont(FontManager.getRunescapeSmallFont());
 
 		taskMasterLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
 		taskCompletionTimeLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
@@ -99,6 +115,10 @@ public class SlayerHistoryRecordBox extends JPanel
 		taskNameLabel.setText(record.taskName);
 		taskMasterLabel.setText(record.taskMaster);
 		taskCompletionTimeLabel.setText(panel.shortTimeFormat.format(record.taskCompletionTime));
+		if (record.taskStreak > -1)
+		{
+			taskStreakLabel.setText(String.format("#%,d", record.taskStreak));
+		}
 
 		clientThread.invokeLater(() ->
 		{

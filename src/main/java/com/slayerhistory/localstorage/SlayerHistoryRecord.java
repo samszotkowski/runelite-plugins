@@ -10,4 +10,5 @@ public class SlayerHistoryRecord
 	public final String taskName;
 	public final int taskQuantity;
 	public final boolean skipped;
+	public final int taskStreak;
 }

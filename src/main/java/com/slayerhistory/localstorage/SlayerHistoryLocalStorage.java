@@ -58,8 +58,22 @@ public class SlayerHistoryLocalStorage
 			{
 				if (line.length() > 0)
 				{
-					final SlayerHistoryRecord r = RuneLiteAPI.GSON.fromJson(line, SlayerHistoryRecord.class);
-					data.add(r);
+					SlayerHistoryRecord r = RuneLiteAPI.GSON.fromJson(line, SlayerHistoryRecord.class);
+					if (!line.contains("taskStreak"))
+					{
+						data.add(new SlayerHistoryRecord(
+							r.getTaskCompletionTime(),
+							r.getTaskMaster(),
+							r.getTaskName(),
+							r.getTaskQuantity(),
+							r.isSkipped(),
+							-1
+						));
+					}
+					else
+					{
+						data.add(r);
+					}
 				}
 			}
 		}

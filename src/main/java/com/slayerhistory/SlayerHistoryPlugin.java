@@ -203,6 +203,8 @@ public class SlayerHistoryPlugin extends Plugin
 			|| varpId == VarPlayerID.SLAYER_COUNT_ORIGINAL
 			|| varpId == VarPlayerID.SLAYER_TARGET
 			|| varbitId == VarbitID.SLAYER_MASTER
+			|| varbitId == VarbitID.SLAYER_TASKS_COMPLETED
+			|| varbitId == VarbitID.SLAYER_WILDERNESS_TASKS_COMPLETED
 		)
 		{
 			clientThread.invokeLater(() -> updateActiveTaskDetails(false));
@@ -246,12 +248,23 @@ public class SlayerHistoryPlugin extends Plugin
 		}
 		else
 		{
+			int streak;
+			if (taskMaster.equals("Krystilia"))
+			{
+				streak = client.getVarbitValue(VarbitID.SLAYER_WILDERNESS_TASKS_COMPLETED);
+			}
+			else
+			{
+				streak = client.getVarbitValue(VarbitID.SLAYER_TASKS_COMPLETED);
+			}
+
 			SlayerHistoryRecord record = new SlayerHistoryRecord(
 				Instant.now().toEpochMilli(),
 				taskMaster,
 				taskName,
 				taskInitialQuantity,
-				skipped
+				skipped,
+				streak
 			);
 			localStorage.addSlayerHistoryRecord(record);
 			panel.addRecord(record);
