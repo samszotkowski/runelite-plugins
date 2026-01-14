@@ -37,7 +37,6 @@ import java.util.Map;
 import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
-import net.runelite.api.GameState;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.VarbitChanged;
@@ -95,12 +94,8 @@ public class SlayerHistoryPlugin extends Plugin
 	private SlayerHistoryPanel panel;
 	private NavigationButton navButton;
 
-	private String taskName;
-	private String taskMaster;
-	private int taskInitialQuantity;
-	private int taskQuantity;
-	private int slayerPoints;
-
+	private int oldStreak;
+	private int oldWildyStreak;
 	private boolean loggingIn;
 
 	@Override
@@ -124,11 +119,6 @@ public class SlayerHistoryPlugin extends Plugin
 		if (client.getAccountHash() != -1)
 		{
 			loadPreviousTasks();
-		}
-
-		if (client.getGameState() == GameState.LOGGED_IN)
-		{
-			clientThread.invoke(() -> updateActiveTaskDetails(false));
 		}
 	}
 
@@ -188,26 +178,20 @@ public class SlayerHistoryPlugin extends Plugin
 	public void onVarbitChanged(VarbitChanged varbitChanged)
 	{
 		int varpId = varbitChanged.getVarpId();
-		int varbitId = varbitChanged.getVarbitId();
-		if (varbitId == VarbitID.SLAYER_POINTS)
+		if (!loggingIn && varpId == VarPlayerID.SLAYER_COUNT)
 		{
-			int newPoints = varbitChanged.getValue();
-			int pointsDiff = slayerPoints - newPoints;
-			if (pointsDiff == 30)
-			{
-				clientThread.invokeLater(() -> updateActiveTaskDetails(true));
-			}
-			slayerPoints = newPoints;
-		}
-		else if (varpId == VarPlayerID.SLAYER_COUNT
-			|| varpId == VarPlayerID.SLAYER_COUNT_ORIGINAL
-			|| varpId == VarPlayerID.SLAYER_TARGET
-			|| varbitId == VarbitID.SLAYER_MASTER
-			|| varbitId == VarbitID.SLAYER_TASKS_COMPLETED
-			|| varbitId == VarbitID.SLAYER_WILDERNESS_TASKS_COMPLETED
-		)
-		{
-			clientThread.invokeLater(() -> updateActiveTaskDetails(false));
+			clientThread.invokeLater(() -> {
+				int newStreak = client.getVarbitValue(VarbitID.SLAYER_TASKS_COMPLETED);
+				int newWildyStreak = client.getVarbitValue(VarbitID.SLAYER_WILDERNESS_TASKS_COMPLETED);
+
+				if (varbitChanged.getValue() == 0)
+				{
+					addTask(newStreak == oldStreak && newWildyStreak == oldWildyStreak);
+				}
+
+				oldStreak = newStreak;
+				oldWildyStreak = newWildyStreak;
+			});
 		}
 	}
 
@@ -240,83 +224,70 @@ public class SlayerHistoryPlugin extends Plugin
 		}
 	}
 
-	public void addTask(boolean skipped)
+	private String getTaskName(int taskId)
 	{
-		if (taskMaster == null || taskName == null || taskInitialQuantity == -1)
+		int taskDBRow;
+		if (taskId == 98 /* Bosses, from [proc,helper_slayer_current_assignment] */)
 		{
-			log.warn("Tried to submit empty task");
+			var bossRows = client.getDBRowsByValue(
+				DBTableID.SlayerTaskSublist.ID,
+				DBTableID.SlayerTaskSublist.COL_TASK_SUBTABLE_ID,
+				0,
+				client.getVarbitValue(VarbitID.SLAYER_TARGET_BOSSID));
+
+			if (bossRows.isEmpty())
+			{
+				return null;
+			}
+			taskDBRow = (Integer) client.getDBTableField(bossRows.get(0), DBTableID.SlayerTaskSublist.COL_TASK, 0)[0];
 		}
 		else
 		{
-			int streak;
-			if (taskMaster.equals("Krystilia"))
+			var taskRows = client.getDBRowsByValue(DBTableID.SlayerTask.ID, DBTableID.SlayerTask.COL_ID, 0, taskId);
+			if (taskRows.isEmpty())
 			{
-				streak = client.getVarbitValue(VarbitID.SLAYER_WILDERNESS_TASKS_COMPLETED);
+				return null;
 			}
-			else
-			{
-				streak = client.getVarbitValue(VarbitID.SLAYER_TASKS_COMPLETED);
-			}
-
-			SlayerHistoryRecord record = new SlayerHistoryRecord(
-				Instant.now().toEpochMilli(),
-				taskMaster,
-				taskName,
-				taskInitialQuantity,
-				skipped,
-				streak
-			);
-			localStorage.addSlayerHistoryRecord(record);
-			panel.addRecord(record);
+			taskDBRow = taskRows.get(0);
 		}
 
-		taskMaster = null;
-		taskName = null;
-		taskInitialQuantity = -1;
+		return (String) client.getDBTableField(taskDBRow, DBTableID.SlayerTask.COL_NAME_UPPERCASE, 0)[0];
 	}
 
-	private void updateActiveTaskDetails(boolean skipped)
+	private void addTask(boolean skipped)
 	{
-		int newTaskQuantity = client.getVarpValue(VarPlayerID.SLAYER_COUNT);
-		if (newTaskQuantity > 0)
+		int taskId = client.getVarpValue(VarPlayerID.SLAYER_TARGET);
+
+		String taskName = getTaskName(taskId);
+		String taskMaster = SLAYER_MASTERS.get(client.getVarbitValue(VarbitID.SLAYER_MASTER));
+		int taskInitialQuantity = client.getVarpValue(VarPlayerID.SLAYER_COUNT_ORIGINAL);
+
+		if (taskName == null)
 		{
-			int taskId = client.getVarpValue(VarPlayerID.SLAYER_TARGET);
-
-			int taskDBRow;
-			if (taskId == 98 /* Bosses, from [proc,helper_slayer_current_assignment] */)
-			{
-				var bossRows = client.getDBRowsByValue(
-					DBTableID.SlayerTaskSublist.ID,
-					DBTableID.SlayerTaskSublist.COL_TASK_SUBTABLE_ID,
-					0,
-					client.getVarbitValue(VarbitID.SLAYER_TARGET_BOSSID));
-
-				if (bossRows.isEmpty())
-				{
-					return;
-				}
-				taskDBRow = (Integer) client.getDBTableField(bossRows.get(0), DBTableID.SlayerTaskSublist.COL_TASK, 0)[0];
-			}
-			else
-			{
-				var taskRows = client.getDBRowsByValue(DBTableID.SlayerTask.ID, DBTableID.SlayerTask.COL_ID, 0, taskId);
-				if (taskRows.isEmpty())
-				{
-					return;
-				}
-				taskDBRow = taskRows.get(0);
-			}
-
-			taskMaster = SLAYER_MASTERS.get(client.getVarbitValue(VarbitID.SLAYER_MASTER));
-			taskInitialQuantity = client.getVarpValue(VarPlayerID.SLAYER_COUNT_ORIGINAL);
-			taskName = (String) client.getDBTableField(taskDBRow, DBTableID.SlayerTask.COL_NAME_UPPERCASE, 0)[0];
-
-			log.debug("{}, {}, {}/{}", taskName, taskMaster, newTaskQuantity, taskInitialQuantity);
+			log.warn("Unable to find task name");
+			return;
 		}
-		else if (taskQuantity > 0 && !loggingIn)  // task was previously active, now it's not => task complete
+		log.debug("{}, {}, {}", taskName, taskMaster, taskInitialQuantity);
+
+		int streak;
+		if (taskMaster.equals("Krystilia"))
 		{
-			addTask(skipped);
+			streak = client.getVarbitValue(VarbitID.SLAYER_WILDERNESS_TASKS_COMPLETED);
 		}
-		taskQuantity = newTaskQuantity;
+		else
+		{
+			streak = client.getVarbitValue(VarbitID.SLAYER_TASKS_COMPLETED);
+		}
+
+		SlayerHistoryRecord record = new SlayerHistoryRecord(
+			Instant.now().toEpochMilli(),
+			taskMaster,
+			taskName,
+			taskInitialQuantity,
+			skipped,
+			streak
+		);
+		localStorage.addSlayerHistoryRecord(record);
+		panel.addRecord(record);
 	}
 }

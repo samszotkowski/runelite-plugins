@@ -14,4 +14,6 @@ v1.2 - Streak # after completing each task (or wildy streak # after completing a
 
 To do this, edit the lines in `tasks.log` so they look like `{...,"taskStreak":1000}` then save the file, and turn the plugin off and on to refresh it.
 
-v1.1 - Skipped tasks now show up as a bank filler icon and the name is red. There is a toggle in the settings to show/hide skipped tasks.
+Also fixed a bug so cancelling/blocking/storing tasks should all now properly display as skips.
+
+1.1 - Skipped tasks now show up as a bank filler icon and the name is red. There is a toggle in the settings to show/hide skipped tasks.
