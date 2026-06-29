@@ -10,6 +10,7 @@ More activities will be added in time. If you find any problems or have a sugges
 - Standard trees
 - Infected roots
 - Sulliusceps
+- TODO: Tai Bwo Wannai cleanup
 - Kandarin headgear
 - TODO: Infernal axe
 - Bird nests
