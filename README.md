@@ -21,9 +21,9 @@ More activities will be added in time. If you find any problems or have a sugges
 - Varlamore considerations
   - Ent seeds
   - Loop half of moon key
-- TODO: Beaver pet
+- Beaver pet is NOT supported
 
-Some "items" in the loot tracker panel have special meaning:
+Certain "items" with special meanings are included in the loot tracker panel to (hopefully) render a complete account:
 | Icon | Description |
 | ---- | ----------- |
 | <img src="https://raw.githubusercontent.com/runelite/static.runelite.net/refs/heads/gh-pages/cache/item/icon/20594.png"> | Forester's rations deleted a log. |
