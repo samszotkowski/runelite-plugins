@@ -13,8 +13,10 @@ More activities will be added in time. If you find any problems or have a sugges
 - Sulliusceps
 - Hollow tree (bark)
 - Burnt tree (charcoal)
-- TODO: Miscellania favour trees
 - Temple Trekking swamp trees
+- TODO: Miscellania favour trees
+- TODO: Tai Bwo Wannai cleanup
+- TODO: Kharazi Jungle Bush
 - Forestry considerations
   - Leaves + secateur attachments
   - Felling axe + forester's rations
@@ -29,7 +31,6 @@ More activities will be added in time. If you find any problems or have a sugges
   - TODO: Infernal axe
 - NOT supported
   - Beaver pet
-  - Tai Bwo Wannai cleanup
 
 Certain "items" with special meanings are included in the loot tracker panel to (hopefully) render a complete account:
 | Icon | Description |
