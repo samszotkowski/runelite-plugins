@@ -3,6 +3,21 @@ Allows loot from certain gathering activities to be seen by RuneLite's built-in 
 
 ## Supported activities
 - Woodcutting
+  - Standard trees
+  - Infected roots
+  - Sulliusceps
+  - Kandarin headgear
+  - Bird nests
+  - Forestry considerations
+    - Leaves
+    - Felling axe
+    - Log basket
+    - Nature's offerings
+    - Forester's rations
+    - Secateur attachments
+  - Varlamore considerations
+    - Ent seeds
+    - Loop half of moon key
 
 I've tried to handle all edge cases I'm aware of (e.g. logs going directly into an open log basket), and more activities will be added in time.
 
