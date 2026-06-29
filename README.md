@@ -2,6 +2,8 @@
 Allows loot from certain gathering activities to be seen by RuneLite's built-in Loot Tracker plugin.
 
 ## Supported activities
+More activities will be added in time. If you find any problems or have a suggestion for something to add, please [create an issue](https://github.com/samszotkowski/runelite-plugins/issues/new) in the GitHub repository.
+
 ### Woodcutting
 - Standard trees
 - Infected roots
@@ -18,7 +20,11 @@ Allows loot from certain gathering activities to be seen by RuneLite's built-in 
   - Ent seeds
   - Loop half of moon key
 
-More activities will be added in time. If you find any problems or have a suggestion for something to add, please [create an issue](https://github.com/samszotkowski/runelite-plugins/issues/new) in the GitHub repository.
+Some "items" in the loot tracker panel have special meaning:
+| Icon | Description |
+| ---- | ----------- |
+| <img src="https://raw.githubusercontent.com/runelite/static.runelite.net/refs/heads/gh-pages/cache/item/icon/20594.png"> | Forester's rations deleted a log. |
+| <img src="https://raw.githubusercontent.com/runelite/static.runelite.net/refs/heads/gh-pages/cache/item/icon/4653.png"> | Infernal axe burnt a log. |
 
 ## Version history
 0.1 - Add support for Woodcutting activities
