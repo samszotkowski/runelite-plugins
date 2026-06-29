@@ -121,6 +121,7 @@ public class GatheringLootPlugin extends Plugin
 	private EventBus eventBus;
 
 	private String lastTreeClicked;
+	private int lastTreeClickedId;
 	private Map<Integer, Integer> pendingLoot;
 	private boolean pendingInvGroundCollection;
 	private int pendingLogId;
@@ -168,7 +169,8 @@ public class GatheringLootPlugin extends Plugin
 		String targetName = Text.removeTags(event.getMenuEntry().getTarget());
 		int targetId = event.getMenuEntry().getIdentifier();
 
-		if (isObjectOp(event.getMenuAction()) && (targetName.toLowerCase().endsWith("tree") || targetName.equals(WC_TREENAME_SULLIUSCEP)))
+		if (isObjectOp(event.getMenuAction())
+			&& (targetName.toLowerCase().endsWith("tree") || targetName.equals(WC_TREENAME_SULLIUSCEP) || targetName.equals(WC_TREENAME_INF_ROOT)))
 		{
 			if (WC_TREEID_MAPPING.containsKey(targetId))
 			{
@@ -182,6 +184,7 @@ public class GatheringLootPlugin extends Plugin
 			{
 				lastTreeClicked = targetName;
 			}
+			lastTreeClickedId = targetId;
 		}
 	}
 
@@ -365,6 +368,7 @@ public class GatheringLootPlugin extends Plugin
 				.name(lastTreeClicked)
 				.type(LootRecordType.EVENT)
 				.items(loot)
+				.metadata(lastTreeClickedId)
 				.build());
 		}
 
