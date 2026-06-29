@@ -2,6 +2,7 @@
 Allows loot from certain gathering activities to be seen by RuneLite's built-in Loot Tracker plugin.
 
 ## Supported activities
+<img align="right" src="https://github.com/user-attachments/assets/89cf58a0-5393-49ae-9d9c-494ec4859407" />
 More activities will be added in time. If you find any problems or have a suggestion for something to add, please [create an issue](https://github.com/samszotkowski/runelite-plugins/issues/new) in the GitHub repository.
 
 ### Woodcutting
