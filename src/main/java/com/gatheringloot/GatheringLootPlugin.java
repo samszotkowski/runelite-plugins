@@ -42,12 +42,17 @@ public class GatheringLootPlugin extends Plugin
 	private static final String WC_TREENAME_SULLIUSCEP = "Sulliuscep";
 	private static final String WC_TREENAME_INF_ROOT = "Infected root";
 	private static final String WC_TREENAME_ACHEY = "Achey Tree";
+	private static final String WC_TREENAME_JUNGLE = "Jungle tree";
 
 	// To group trees together by drops, first check object ID then check name
 	private static final Map<Integer, String> WC_TREEID_MAPPING = Map.of(
 		ObjectID.FOSSIL_DEADTREE_LARGE1, WC_TREENAME_CHARCOAL,  // "Burnt tree" gives charcoal instead of logs
 		ObjectID.FOSSIL_DEADTREE_SMALL1, WC_TREENAME_CHARCOAL,
-		ObjectID.DEADTREE_BURNT, WC_TREENAME_CHARCOAL
+		ObjectID.DEADTREE_BURNT, WC_TREENAME_CHARCOAL,
+		ObjectID.KHARAZI_JUNGLE_TREE1, WC_TREENAME_JUNGLE,  // "Jungle tree/Bush" give logs like normal jungle tree but work differently
+		ObjectID.KHARAZI_JUNGLE_TREE2, WC_TREENAME_JUNGLE,
+		ObjectID.KHARAZI_JUNGLE_PLANT1, WC_TREENAME_JUNGLE,
+		ObjectID.KHARAZI_JUNGLE_PLANT2, WC_TREENAME_JUNGLE
 	);
 
 	private static final Map<String, String> WC_TREENAME_MAPPING = Map.of(
