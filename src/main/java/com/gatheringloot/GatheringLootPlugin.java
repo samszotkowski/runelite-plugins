@@ -97,6 +97,7 @@ public class GatheringLootPlugin extends Plugin
 	private static final String WC_NEST_MESSAGE = "<col=ff0000>A bird's nest falls out of the tree.</col>";
 	private static final String WC_ENT_SEED_MESSAGE = "An ent seed falls out of the tree!";
 	private static final String WC_DEMONTEAR_MESSAGE = "You retrieve a demon tear from the root.";
+	private static final String WC_TREK_VINE_MESSAGE = "You slice a vine from the tree.";
 
 	// Woodcutting tertiary
 	private static final String WC_NATURE_OFFERINGS_MESSAGE = "The nature offerings enabled you to chop an extra log.";
@@ -270,7 +271,8 @@ public class GatheringLootPlugin extends Plugin
 			|| WC_ENT_SEED_MESSAGE.equals(message)
 			|| MOON_KEY_LOOP_HALF_MESSAGE.equals(message)
 			|| WC_LOGMESSAGE_CHARCOAL.equals(message)
-			|| WC_DEMONTEAR_MESSAGE.equals(message))
+			|| WC_DEMONTEAR_MESSAGE.equals(message)
+			|| WC_TREK_VINE_MESSAGE.equals(message))
 		{
 			pendingInvGroundCollection = true;
 		}
