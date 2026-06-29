@@ -30,7 +30,7 @@ import net.runelite.http.api.loottracker.LootRecordType;
 @Slf4j
 @PluginDescriptor(
 	name = "Gathering loot tracker",
-	description = "Sends gathering loot to built-in loot tracker",
+	description = "Send gathering loot to built-in loot tracker",
 	tags = {"drops", "skilling"}
 )
 public class GatheringLootPlugin extends Plugin
