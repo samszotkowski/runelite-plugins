@@ -21,6 +21,7 @@ More activities will be added in time. If you find any problems or have a sugges
 - Varlamore considerations
   - Ent seeds
   - Loop half of moon key
+- TODO: Beaver pet
 
 Some "items" in the loot tracker panel have special meaning:
 | Icon | Description |
