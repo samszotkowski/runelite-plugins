@@ -12,6 +12,7 @@ More activities will be added in time. If you find any problems or have a sugges
   - Blisterwood
   - Hollow (bark)
   - Charcoal
+  - TODO: Miscellania favour trees
 - Infected roots
 - Sulliusceps
 - Forestry considerations
@@ -28,7 +29,6 @@ More activities will be added in time. If you find any problems or have a sugges
   - TODO: Infernal axe
 - NOT supported
   - Beaver pet
-  - Miscellania favour trees
   - Tai Bwo Wannai cleanup
   - Temple Trekking swamp trees
 
@@ -37,6 +37,7 @@ Certain "items" with special meanings are included in the loot tracker panel to 
 | ---- | ----------- |
 | <img src="https://raw.githubusercontent.com/runelite/static.runelite.net/refs/heads/gh-pages/cache/item/icon/20594.png"> | Forester's rations deleted a log. |
 | <img src="https://raw.githubusercontent.com/runelite/static.runelite.net/refs/heads/gh-pages/cache/item/icon/4653.png"> | Infernal axe burnt a log. |
+| <img src="https://raw.githubusercontent.com/runelite/static.runelite.net/refs/heads/gh-pages/cache/item/icon/32281.png"> | Miscellania favour given instead of a log. |
 
 ## Version history
 0.1 - Add support for Woodcutting activities
