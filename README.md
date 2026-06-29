@@ -23,6 +23,7 @@ More activities will be added in time. If you find any problems or have a sugges
   - Ent seeds
   - Loop half of moon key
 - Beaver pet is NOT supported
+- Miscellania favour trees are NOT supported
 
 Certain "items" with special meanings are included in the loot tracker panel to (hopefully) render a complete account:
 | Icon | Description |
