@@ -13,11 +13,13 @@ import net.runelite.api.MenuAction;
 import net.runelite.api.Skill;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.StatChanged;
 import net.runelite.api.gameval.ItemID;
 import net.runelite.api.gameval.ObjectID;
+import net.runelite.client.config.RuneScapeProfileType;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemStack;
@@ -35,19 +37,25 @@ import net.runelite.http.api.loottracker.LootRecordType;
 )
 public class GatheringLootPlugin extends Plugin
 {
+	private static final String WC_TREENAME_STANDARD = "Tree";
+	private static final String WC_TREENAME_CHARCOAL = "Burnt tree";
+	private static final String WC_TREENAME_SULLIUSCEP = "Sulliuscep";
+	private static final String WC_TREENAME_INF_ROOT = "Infected root";
+	private static final String WC_TREENAME_ACHEY = "Achey Tree";
+
 	// To group trees together by drops, first check object ID then check name
 	private static final Map<Integer, String> WC_TREEID_MAPPING = Map.of(
-		ObjectID.FOSSIL_DEADTREE_LARGE1, "Burnt tree",  // "Burnt tree" gives charcoal instead of logs
-		ObjectID.FOSSIL_DEADTREE_SMALL1, "Burnt tree",
-		ObjectID.DEADTREE_BURNT, "Burnt tree"
+		ObjectID.FOSSIL_DEADTREE_LARGE1, WC_TREENAME_CHARCOAL,  // "Burnt tree" gives charcoal instead of logs
+		ObjectID.FOSSIL_DEADTREE_SMALL1, WC_TREENAME_CHARCOAL,
+		ObjectID.DEADTREE_BURNT, WC_TREENAME_CHARCOAL
 	);
 
 	private static final Map<String, String> WC_TREENAME_MAPPING = Map.of(
-		"Dead tree", "Tree",
-		"Dying tree", "Tree",
-		"Evergreen tree", "Tree",
-		"Jungle tree", "Tree",
-		"Burnt tree", "Tree"
+		"Dead tree", WC_TREENAME_STANDARD,
+		"Dying tree", WC_TREENAME_STANDARD,
+		"Evergreen tree", WC_TREENAME_STANDARD,
+		"Jungle tree", WC_TREENAME_STANDARD,
+		"Burnt tree", WC_TREENAME_STANDARD
 	);
 
 	private static final Map<String, Integer> WC_LOGMESSAGE_ITEMID = Map.ofEntries(
@@ -73,7 +81,6 @@ public class GatheringLootPlugin extends Plugin
 	// special cases
 	private static final String WC_LOGMESSAGE_STANDARD = "You get some logs.";
 	private static final String WC_LOGMESSAGE_CHARCOAL = "You get some charcoal.";
-	private static final String WC_SULLIUSCEP = "Sulliuscep";
 	private static final int WC_SULLIUSCEP_MIN_XP = 127;
 	private static final int WC_SULLIUSCEP_MAX_XP = 144;  // 127 * 1.1 (2h axe) * 1.025 (outfit)
 	private static final List<List<Integer>> WC_SULLIUSCEP_LOCS = List.of(
@@ -121,13 +128,24 @@ public class GatheringLootPlugin extends Plugin
 	private int pendingLeafId;
 	private int pendingLeafCount;
 
+	private long lastAccountHash;
+	private RuneScapeProfileType lastWorldType;
+	private boolean initializeWcExperience;
+	private int lastWcExperience;
+
+	@Override
+	protected void startUp()
+	{
+		initializeWcExperience = true;
+	}
+
 	@Override
 	protected void shutDown()
 	{
-		reset();
+		resetState();
 	}
 
-	private void reset()
+	private void resetState()
 	{
 		pendingLoot = null;
 		pendingLogId = 0;
@@ -147,15 +165,10 @@ public class GatheringLootPlugin extends Plugin
 	@Subscribe
 	public void onMenuOptionClicked(MenuOptionClicked event)
 	{
-		if (client == null || client.getLocalPlayer() == null || client.getGameState().compareTo(GameState.LOGGED_IN) < 0)
-		{
-			return;
-		}
-
 		String targetName = Text.removeTags(event.getMenuEntry().getTarget());
 		int targetId = event.getMenuEntry().getIdentifier();
 
-		if (isObjectOp(event.getMenuAction()) && (targetName.toLowerCase().endsWith("tree") || targetName.equals(WC_SULLIUSCEP)))
+		if (isObjectOp(event.getMenuAction()) && (targetName.toLowerCase().endsWith("tree") || targetName.equals(WC_TREENAME_SULLIUSCEP)))
 		{
 			if (WC_TREEID_MAPPING.containsKey(targetId))
 			{
@@ -195,11 +208,6 @@ public class GatheringLootPlugin extends Plugin
 	@Subscribe
 	public void onChatMessage(ChatMessage event)
 	{
-		if (client == null || client.getLocalPlayer() == null || client.getGameState().compareTo(GameState.LOGGED_IN) < 0)
-		{
-			return;
-		}
-
 		ChatMessageType messageType = event.getType();
 		String message = event.getMessage();
 
@@ -218,12 +226,12 @@ public class GatheringLootPlugin extends Plugin
 		}
 		else if (message.equals(WC_LOGMESSAGE_STANDARD))
 		{
-			if (lastTreeClicked.equals("Achey Tree"))
+			if (lastTreeClicked.equals(WC_TREENAME_ACHEY))
 			{
 				pendingLogId = ItemID.ACHEY_TREE_LOGS;
 				pendingLogCount++;
 			}
-			else if (lastTreeClicked.equals("Tree") || lastTreeClicked.equals("Infected root"))
+			else if (lastTreeClicked.equals(WC_TREENAME_STANDARD) || lastTreeClicked.equals(WC_TREENAME_INF_ROOT))
 			{
 				pendingLogId = ItemID.LOGS;
 				pendingLogCount++;
@@ -285,16 +293,23 @@ public class GatheringLootPlugin extends Plugin
 	@Subscribe
 	public void onStatChanged(StatChanged event)
 	{
-		if (client == null || client.getLocalPlayer() == null || client.getGameState().compareTo(GameState.LOGGED_IN) < 0)
+		if (initializeWcExperience)
 		{
 			return;
 		}
 
 		if (event.getSkill().equals(Skill.WOODCUTTING))
 		{
-			int wcXp = event.getXp();
-			if (lastTreeClicked.equals(WC_SULLIUSCEP)
-				&& wcXp >= WC_SULLIUSCEP_MIN_XP && wcXp <= WC_SULLIUSCEP_MAX_XP
+			int xpDiff = event.getXp() - lastWcExperience;
+			if (xpDiff == 0)
+			{
+				return;
+			}
+			lastWcExperience = event.getXp();
+			log.info("{}", xpDiff);
+
+			if (lastTreeClicked.equals(WC_TREENAME_SULLIUSCEP)
+				&& xpDiff >= WC_SULLIUSCEP_MIN_XP && xpDiff <= WC_SULLIUSCEP_MAX_XP
 				&& withinDistance(WC_SULLIUSCEP_LOCS, 2))
 			{
 				pendingInvGroundCollection = true;
@@ -303,13 +318,28 @@ public class GatheringLootPlugin extends Plugin
 	}
 
 	@Subscribe
+	public void onGameStateChanged(GameStateChanged event)
+	{
+		GameState state = event.getGameState();
+		if (state.equals(GameState.LOGGED_IN))
+		{
+			RuneScapeProfileType worldType = RuneScapeProfileType.getCurrent(client);
+			if (client.getAccountHash() != lastAccountHash || lastWorldType != worldType)
+			{
+				lastAccountHash = client.getAccountHash();
+				lastWorldType = worldType;
+				resetState();
+			}
+		}
+		else if (state.equals(GameState.LOGGING_IN) || state.equals(GameState.HOPPING))
+		{
+			initializeWcExperience = true;
+		}
+	}
+
+	@Subscribe
 	public void onGameTick(GameTick event)
 	{
-		if (client == null || client.getLocalPlayer() == null || client.getGameState().compareTo(GameState.LOGGED_IN) < 0)
-		{
-			return;
-		}
-
 		if (pendingInvGroundCollection)
 		{
 			// TODO: add all of (current inventory+ground items) - (old inventory+ground items) to pendingLoot
@@ -338,6 +368,11 @@ public class GatheringLootPlugin extends Plugin
 				.build());
 		}
 
-		reset();
+		if (initializeWcExperience)
+		{
+			lastWcExperience = client.getSkillExperience(Skill.WOODCUTTING);
+			initializeWcExperience = false;
+		}
+		resetState();
 	}
 }
