@@ -8,12 +8,12 @@ More activities will be added in time. If you find any problems or have a sugges
 
 ### Woodcutting
 - Standard trees
+  - Oak, willow, maple, etc.
+  - Blisterwood
+  - Hollow (bark)
+  - Charcoal
 - Infected roots
 - Sulliusceps
-- TODO: Tai Bwo Wannai cleanup
-- Kandarin headgear
-- TODO: Infernal axe
-- Bird nests
 - Forestry considerations
   - Leaves + secateur attachments
   - Felling axe + forester's rations
@@ -22,8 +22,15 @@ More activities will be added in time. If you find any problems or have a sugges
 - Varlamore considerations
   - Ent seeds
   - Loop half of moon key
-- Beaver pet is NOT supported
-- Miscellania favour trees are NOT supported
+- Miscellaneous considerations
+  - Bird nests
+  - Kandarin headgear
+  - TODO: Infernal axe
+- NOT supported
+  - Beaver pet
+  - Miscellania favour trees
+  - Tai Bwo Wannai cleanup
+  - Temple Trekking swamp trees
 
 Certain "items" with special meanings are included in the loot tracker panel to (hopefully) render a complete account:
 | Icon | Description |
