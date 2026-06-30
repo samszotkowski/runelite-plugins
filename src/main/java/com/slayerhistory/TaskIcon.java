@@ -156,6 +156,7 @@ class TaskIcon
 		Map.entry("suqahs", ItemID.SUQKA_TOOTH),
 		Map.entry("terror dogs", ItemID.SLAYERGUIDE_TERRORDOG),
 		Map.entry("the leviathan", ItemID.LEVIATHANPET),
+		Map.entry("the maggot king", 33642),
 		Map.entry("the thermonuclear smoke devil", ItemID.SMOKEPET),
 		Map.entry("the whisperer", ItemID.WHISPERERPET),
 		Map.entry("trolls", ItemID.POH_TROLL),
