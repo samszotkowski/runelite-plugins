@@ -96,6 +96,7 @@ public class SlayerHistoryPlugin extends Plugin
 
 	private int oldStreak;
 	private int oldWildyStreak;
+	private int taskInitialQuantity;
 	private boolean loggingIn;
 
 	@Override
@@ -193,6 +194,13 @@ public class SlayerHistoryPlugin extends Plugin
 				oldWildyStreak = newWildyStreak;
 			});
 		}
+		// Cancel task via interface: SLAYER_COUNT_ORIGINAL does not change
+		// Complete task normally:    SLAYER_COUNT_ORIGINAL does not change
+		// Cancel task via dialogue:  SLAYER_COUNT_ORIGINAL set to 0... so we need to keep it in memory
+		else if (varpId == VarPlayerID.SLAYER_COUNT_ORIGINAL && varbitChanged.getValue() != 0)
+		{
+			taskInitialQuantity = varbitChanged.getValue();
+		}
 	}
 
 	private void updateFolderName()
@@ -260,8 +268,6 @@ public class SlayerHistoryPlugin extends Plugin
 
 		String taskName = getTaskName(taskId);
 		String taskMaster = SLAYER_MASTERS.get(client.getVarbitValue(VarbitID.SLAYER_MASTER));
-		int taskInitialQuantity = client.getVarpValue(VarPlayerID.SLAYER_COUNT_ORIGINAL);
-
 		if (taskName == null)
 		{
 			log.warn("Unable to find task name");
