@@ -117,7 +117,14 @@ public class SlayerHistoryRecordBox extends JPanel
 		taskCompletionTimeLabel.setText(panel.shortTimeFormat.format(record.taskCompletionTime));
 		if (record.taskStreak > -1)
 		{
-			taskStreakLabel.setText(String.format("#%,d", record.taskStreak));
+			if (record.taskMaster.equals("Krystilia"))
+			{
+				taskStreakLabel.setText(String.format("W#%,d", record.taskStreak));
+			}
+			else
+			{
+				taskStreakLabel.setText(String.format("#%,d", record.taskStreak));
+			}
 		}
 
 		clientThread.invokeLater(() ->
