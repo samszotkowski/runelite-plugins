@@ -98,6 +98,7 @@ public class SlayerHistoryPlugin extends Plugin
 	private int oldWildyStreak;
 	private int taskInitialQuantity;
 	private boolean loggingIn;
+	private boolean hasCurrent;
 
 	@Override
 	protected void startUp() throws Exception
@@ -120,6 +121,7 @@ public class SlayerHistoryPlugin extends Plugin
 		if (client.getAccountHash() != -1)
 		{
 			loadPreviousTasks();
+			clientThread.invokeLater(this::addCurrentTask);
 		}
 	}
 
@@ -127,6 +129,10 @@ public class SlayerHistoryPlugin extends Plugin
 	protected void shutDown() throws Exception
 	{
 		clientToolbar.removeNavigation(navButton);
+		if (hasCurrent) {
+			panel.removeCurrent();
+			hasCurrent = false;
+		}
 	}
 
 	@Provides
@@ -151,6 +157,7 @@ public class SlayerHistoryPlugin extends Plugin
 		else if (configChanged.getKey().equals("showSkippedTasks"))
 		{
 			loadPreviousTasks();
+			clientThread.invokeLater(this::addCurrentTask);
 		}
 	}
 
@@ -184,6 +191,7 @@ public class SlayerHistoryPlugin extends Plugin
 			clientThread.invokeLater(() -> {
 				int newStreak = client.getVarbitValue(VarbitID.SLAYER_TASKS_COMPLETED);
 				int newWildyStreak = client.getVarbitValue(VarbitID.SLAYER_WILDERNESS_TASKS_COMPLETED);
+				log.debug("standard streak: {}->{}, wildy streak: {}->{}", oldStreak, newStreak, oldWildyStreak, newWildyStreak);
 
 				if (varbitChanged.getValue() == 0)
 				{
@@ -200,6 +208,10 @@ public class SlayerHistoryPlugin extends Plugin
 		else if (varpId == VarPlayerID.SLAYER_COUNT_ORIGINAL && varbitChanged.getValue() != 0)
 		{
 			taskInitialQuantity = varbitChanged.getValue();
+			if (!hasCurrent)
+			{
+				clientThread.invokeLater(this::addCurrentTask);
+			}
 		}
 	}
 
@@ -224,7 +236,10 @@ public class SlayerHistoryPlugin extends Plugin
 		ArrayList<SlayerHistoryRecord> taskHistory = localStorage.loadSlayerHistoryRecords();
 		if (!taskHistory.isEmpty())
 		{
-			taskHistory.forEach(panel::addRecord);
+			for (SlayerHistoryRecord r : taskHistory)
+			{
+				panel.addRecord(r, false);
+			}
 		}
 		else
 		{
@@ -294,6 +309,39 @@ public class SlayerHistoryPlugin extends Plugin
 			streak
 		);
 		localStorage.addSlayerHistoryRecord(record);
-		panel.addRecord(record);
+		panel.removeCurrent();
+		hasCurrent = false;
+		panel.addRecord(record, false);
+	}
+
+	private void addCurrentTask()
+	{
+		int taskCount = client.getVarpValue(VarPlayerID.SLAYER_COUNT);
+		if (taskCount == 0)
+		{
+			return;
+		}
+
+		int taskId = client.getVarpValue(VarPlayerID.SLAYER_TARGET);
+
+		String taskName = getTaskName(taskId);
+		String taskMaster = SLAYER_MASTERS.get(client.getVarbitValue(VarbitID.SLAYER_MASTER));
+		if (taskName == null)
+		{
+			log.warn("Unable to find task name");
+			return;
+		}
+		log.debug("{}, {}, {}", taskName, taskMaster, taskInitialQuantity);
+
+		SlayerHistoryRecord record = new SlayerHistoryRecord(
+			-1,
+			taskMaster,
+			taskName,
+			taskInitialQuantity,
+			false,
+			-1
+		);
+		panel.addRecord(record, true);
+		hasCurrent = true;
 	}
 }

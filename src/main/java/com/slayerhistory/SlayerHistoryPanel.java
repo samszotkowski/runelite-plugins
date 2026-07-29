@@ -70,7 +70,13 @@ public class SlayerHistoryPanel extends PluginPanel
 		updateTasksLoggedLabel();
 	}
 
-	public void addRecord(SlayerHistoryRecord record)
+	public void removeCurrent()
+	{
+		recordBoxPanel.remove(0);
+		recordBoxes.remove(0);
+	}
+
+	public void addRecord(SlayerHistoryRecord record, boolean current)
 	{
 		if (config.showSkippedTasks() || !record.isSkipped())
 		{
@@ -78,7 +84,10 @@ public class SlayerHistoryPanel extends PluginPanel
 				SlayerHistoryRecordBox recordBox = new SlayerHistoryRecordBox(this, record, clientThread, itemManager);
 				recordBoxPanel.add(recordBox, 0);
 				recordBoxes.add(recordBox);
-				updateTasksLoggedLabel();
+				if (!current)
+				{
+					updateTasksLoggedLabel();
+				}
 			});
 		}
 	}
@@ -98,7 +107,6 @@ public class SlayerHistoryPanel extends PluginPanel
 	public void updateAllRecordBoxes()
 	{
 		recordBoxes.forEach(SlayerHistoryRecordBox::update);
-		updateTasksLoggedLabel();
 	}
 
 	public void updateTasksLoggedLabel()

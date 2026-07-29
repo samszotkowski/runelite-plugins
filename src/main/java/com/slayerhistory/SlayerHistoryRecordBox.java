@@ -114,8 +114,18 @@ public class SlayerHistoryRecordBox extends JPanel
 		}
 		taskNameLabel.setText(record.taskName);
 		taskMasterLabel.setText(record.taskMaster);
-		taskCompletionTimeLabel.setText(panel.shortTimeFormat.format(record.taskCompletionTime));
-		if (record.taskStreak > -1)
+
+		if (record.taskCompletionTime != -1)
+		{
+			taskCompletionTimeLabel.setText(panel.shortTimeFormat.format(record.taskCompletionTime));
+		}
+		else
+		{
+			taskCompletionTimeLabel.setText("Current task");
+			taskCompletionTimeLabel.setForeground(ColorScheme.PROGRESS_INPROGRESS_COLOR);
+		}
+
+		if (record.taskStreak != -1)
 		{
 			if (record.taskMaster.equals("Krystilia"))
 			{
