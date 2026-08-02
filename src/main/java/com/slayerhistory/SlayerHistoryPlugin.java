@@ -70,8 +70,12 @@ public class SlayerHistoryPlugin extends Plugin
 		6, "Nieve/Steve",
 		7, "Krystilia",
 		8, "Konar quo Maten",
-		9, "Spria"
+		9, "Spria",
+		10, "Mortimer"
 	);
+
+	// VarbitID.SLAYER_MODIFIER_ID is index of https://abextm.github.io/cache2/#/viewer/dbtable/131
+	private static final int MORTIFIER_QUANTITY = 2;
 
 	@Inject
 	private Client client;
@@ -208,10 +212,18 @@ public class SlayerHistoryPlugin extends Plugin
 		else if (varpId == VarPlayerID.SLAYER_COUNT_ORIGINAL && varbitChanged.getValue() != 0)
 		{
 			taskInitialQuantity = varbitChanged.getValue();
-			if (!hasCurrent)
-			{
-				clientThread.invokeLater(this::addCurrentTask);
-			}
+			clientThread.invokeLater(() -> {
+				String taskMaster = SLAYER_MASTERS.get(client.getVarbitValue(VarbitID.SLAYER_MASTER));
+				if (taskMaster.equals("Mortimer") && client.getVarbitValue(VarbitID.SLAYER_MODIFIER_ID) == MORTIFIER_QUANTITY)
+				{
+					taskInitialQuantity += client.getVarbitValue(SLAYER_MODIFIER_VALUE) * (client.getVarbitValue(SLAYER_MODIFIER_NEGATIVE) ? -1 : 1);
+				}
+
+				if (!hasCurrent)
+				{
+					addCurrentTask();
+				}
+			});
 		}
 	}
 
