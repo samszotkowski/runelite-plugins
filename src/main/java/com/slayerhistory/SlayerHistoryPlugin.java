@@ -124,8 +124,23 @@ public class SlayerHistoryPlugin extends Plugin
 
 		if (client.getAccountHash() != -1)
 		{
-			loadPreviousTasks();
-			clientThread.invokeLater(this::addCurrentTask);
+			updateFolderName();
+
+			clientThread.invokeLater(() -> {
+				oldStreak = client.getVarbitValue(VarbitID.SLAYER_TASKS_COMPLETED);;
+				oldWildyStreak = client.getVarbitValue(VarbitID.SLAYER_WILDERNESS_TASKS_COMPLETED);
+				taskInitialQuantity = client.getVarpValue(VarPlayerID.SLAYER_COUNT_ORIGINAL);
+
+				String taskMaster = SLAYER_MASTERS.get(client.getVarbitValue(VarbitID.SLAYER_MASTER));
+				if (taskMaster.equals("Mortimer") && client.getVarbitValue(VarbitID.SLAYER_MODIFIER_ID) == MORTIFIER_QUANTITY)
+				{
+					boolean isNegative = client.getVarbitValue(VarbitID.SLAYER_MODIFIER_NEGATIVE) == 1;
+					int modifierValue = client.getVarbitValue(VarbitID.SLAYER_MODIFIER_VALUE);
+					taskInitialQuantity += isNegative ? -modifierValue : modifierValue;
+				}
+
+				addCurrentTask();
+			});
 		}
 	}
 
@@ -135,6 +150,10 @@ public class SlayerHistoryPlugin extends Plugin
 		clientToolbar.removeNavigation(navButton);
 		if (hasCurrent) {
 			panel.removeCurrent();
+			oldStreak = -1;
+			oldWildyStreak = -1;
+			taskInitialQuantity = -1;
+			loggingIn = true;
 			hasCurrent = false;
 		}
 	}
@@ -177,6 +196,10 @@ public class SlayerHistoryPlugin extends Plugin
 				break;
 			case LOGGED_IN:
 				updateFolderName();
+				clientThread.invokeLater(() -> {
+					oldStreak = client.getVarbitValue(VarbitID.SLAYER_TASKS_COMPLETED);;
+					oldWildyStreak = client.getVarbitValue(VarbitID.SLAYER_WILDERNESS_TASKS_COMPLETED);
+				});
 		}
 	}
 
@@ -216,7 +239,9 @@ public class SlayerHistoryPlugin extends Plugin
 				String taskMaster = SLAYER_MASTERS.get(client.getVarbitValue(VarbitID.SLAYER_MASTER));
 				if (taskMaster.equals("Mortimer") && client.getVarbitValue(VarbitID.SLAYER_MODIFIER_ID) == MORTIFIER_QUANTITY)
 				{
-					taskInitialQuantity += client.getVarbitValue(SLAYER_MODIFIER_VALUE) * (client.getVarbitValue(SLAYER_MODIFIER_NEGATIVE) ? -1 : 1);
+					boolean isNegative = client.getVarbitValue(VarbitID.SLAYER_MODIFIER_NEGATIVE) == 1;
+					int modifierValue = client.getVarbitValue(VarbitID.SLAYER_MODIFIER_VALUE);
+					taskInitialQuantity += isNegative ? -modifierValue : modifierValue;
 				}
 
 				if (!hasCurrent)
@@ -236,15 +261,15 @@ public class SlayerHistoryPlugin extends Plugin
 			folderName += "-" + Text.titleCase(profileType);
 		}
 
-		if (localStorage.setAccountFolderName(folderName))
-		{
-			loadPreviousTasks();
-		}
+		log.info("{}", folderName);
+		localStorage.setAccountFolderName(folderName);
+		loadPreviousTasks();
 	}
 
 	private synchronized void loadPreviousTasks()
 	{
 		panel.clearAllTasksView();
+		hasCurrent = false;
 		ArrayList<SlayerHistoryRecord> taskHistory = localStorage.loadSlayerHistoryRecords();
 		if (!taskHistory.isEmpty())
 		{
@@ -252,10 +277,6 @@ public class SlayerHistoryPlugin extends Plugin
 			{
 				panel.addRecord(r, false);
 			}
-		}
-		else
-		{
-			panel.clearAllTasksView();
 		}
 	}
 
@@ -329,7 +350,7 @@ public class SlayerHistoryPlugin extends Plugin
 	private void addCurrentTask()
 	{
 		int taskCount = client.getVarpValue(VarPlayerID.SLAYER_COUNT);
-		if (taskCount == 0)
+		if (taskCount < 1)  // -1 when you have boss task without having qty yet, 0 when no task
 		{
 			return;
 		}

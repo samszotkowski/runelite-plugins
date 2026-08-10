@@ -20,7 +20,6 @@ public class SlayerHistoryLocalStorage
 	private static final String SLAYER_HISTORY_FILE = "tasks.log";
 	private static final Logger log = LoggerFactory.getLogger(SlayerHistoryLocalStorage.class);
 	private File logFile;
-	private String accountFolderName;
 
 	@Inject
 	public SlayerHistoryLocalStorage()
@@ -28,17 +27,10 @@ public class SlayerHistoryLocalStorage
 		SLAYER_HISTORY_FOLDER.mkdir();
 	}
 
-	public boolean setAccountFolderName(final String folderName)
+	public void setAccountFolderName(final String folderName)
 	{
-		if (folderName.equalsIgnoreCase(this.accountFolderName))
-		{
-			return false;
-		}
-
 		logFile = new File(SLAYER_HISTORY_FOLDER, folderName);
 		logFile.mkdir();
-		this.accountFolderName = folderName;
-		return true;
 	}
 
 	private File getFile()
