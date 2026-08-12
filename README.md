@@ -10,7 +10,7 @@ Each combination of account and game mode (e.g., Leagues, Deadman) will have a d
 In the settings there is an option to change the date format, and a toggle to show/hide Slayer tasks that were skipped.
 
 ## Changelog
-v1.3 - Show active task at the top of the panel. Fix bugs with Turael skipping. Update several task icons to look cooler.
+v1.3 - Show active task at the top of the panel. Fix bugs with Turael skipping. Update several task icons to look cooler. Mortimer tasks should now be tracked properly.
 
 v1.2 - Streak # after completing each task (or wildy streak # after completing a Krystilia task) now shows up as a number in the bottom right. Previous tasks won't have any data, but if you want numbers to display for old entries you can edit the numbers in yourself.
 
