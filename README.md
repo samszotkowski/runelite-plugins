@@ -18,4 +18,4 @@ To do this, edit the lines in `tasks.log` so they look like `{...,"taskStreak":1
 
 Also fixed a bug so cancelling/blocking/storing tasks should all now properly display as skips.
 
-1.1 - Skipped tasks now show up as a bank filler icon and the name is red. There is a toggle in the settings to show/hide skipped tasks.
+v1.1 - Skipped tasks now show up as a bank filler icon and the name is red. There is a toggle in the settings to show/hide skipped tasks.
