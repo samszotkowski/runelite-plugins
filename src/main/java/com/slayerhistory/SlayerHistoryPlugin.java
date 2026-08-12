@@ -61,17 +61,18 @@ import net.runelite.client.util.Text;
 public class SlayerHistoryPlugin extends Plugin
 {
 	// https://oldschool.runescape.wiki/w/RuneScape:Varbit/4067
-	private static final Map<Integer, String> SLAYER_MASTERS = Map.of(
-		1, "Turael/Aya",
-		2, "Mazchna/Achtryn",
-		3, "Vannaka",
-		4, "Chaeldar",
-		5, "Duradel/Kuradal",
-		6, "Nieve/Steve",
-		7, "Krystilia",
-		8, "Konar quo Maten",
-		9, "Spria",
-		10, "Mortimer"
+	private static final Map<Integer, String> SLAYER_MASTERS = Map.ofEntries(
+		Map.entry(0, "None"),
+		Map.entry(1, "Turael/Aya"),
+		Map.entry(2, "Mazchna/Achtryn"),
+		Map.entry(3, "Vannaka"),
+		Map.entry(4, "Chaeldar"),
+		Map.entry(5, "Duradel/Kuradal"),
+		Map.entry(6, "Nieve/Steve"),
+		Map.entry(7, "Krystilia"),
+		Map.entry(8, "Konar quo Maten"),
+		Map.entry(9, "Spria"),
+		Map.entry(10, "Mortimer")
 	);
 
 	// VarbitID.SLAYER_MODIFIER_ID is index of https://abextm.github.io/cache2/#/viewer/dbtable/131
@@ -98,11 +99,15 @@ public class SlayerHistoryPlugin extends Plugin
 	private SlayerHistoryPanel panel;
 	private NavigationButton navButton;
 
+	// TODO: clean up all this garbage and just use currentRecord for as much as possible
 	private int oldStreak;
 	private int oldWildyStreak;
 	private int taskInitialQuantity;
 	private boolean loggingIn;
 	private boolean hasCurrent;
+	private String taskMaster;
+
+	private SlayerHistoryRecord currentRecord;
 
 	@Override
 	protected void startUp() throws Exception
@@ -127,11 +132,11 @@ public class SlayerHistoryPlugin extends Plugin
 			updateFolderName();
 
 			clientThread.invokeLater(() -> {
-				oldStreak = client.getVarbitValue(VarbitID.SLAYER_TASKS_COMPLETED);;
+				oldStreak = client.getVarbitValue(VarbitID.SLAYER_TASKS_COMPLETED);
 				oldWildyStreak = client.getVarbitValue(VarbitID.SLAYER_WILDERNESS_TASKS_COMPLETED);
 				taskInitialQuantity = client.getVarpValue(VarPlayerID.SLAYER_COUNT_ORIGINAL);
 
-				String taskMaster = SLAYER_MASTERS.get(client.getVarbitValue(VarbitID.SLAYER_MASTER));
+				taskMaster = SLAYER_MASTERS.get(client.getVarbitValue(VarbitID.SLAYER_MASTER));
 				if (taskMaster.equals("Mortimer") && client.getVarbitValue(VarbitID.SLAYER_MODIFIER_ID) == MORTIFIER_QUANTITY)
 				{
 					boolean isNegative = client.getVarbitValue(VarbitID.SLAYER_MODIFIER_NEGATIVE) == 1;
@@ -195,11 +200,14 @@ public class SlayerHistoryPlugin extends Plugin
 				loggingIn = true;
 				break;
 			case LOGGED_IN:
-				updateFolderName();
-				clientThread.invokeLater(() -> {
-					oldStreak = client.getVarbitValue(VarbitID.SLAYER_TASKS_COMPLETED);;
-					oldWildyStreak = client.getVarbitValue(VarbitID.SLAYER_WILDERNESS_TASKS_COMPLETED);
-				});
+				if (loggingIn)
+				{
+					updateFolderName();
+					clientThread.invokeLater(() -> {
+						oldStreak = client.getVarbitValue(VarbitID.SLAYER_TASKS_COMPLETED);
+						oldWildyStreak = client.getVarbitValue(VarbitID.SLAYER_WILDERNESS_TASKS_COMPLETED);
+					});
+				}
 		}
 	}
 
@@ -222,12 +230,22 @@ public class SlayerHistoryPlugin extends Plugin
 
 				if (varbitChanged.getValue() == 0)
 				{
-					addTask(newStreak == oldStreak && newWildyStreak == oldWildyStreak);
+					addTaskFromCurrent(newStreak == oldStreak && newWildyStreak == oldWildyStreak);
 				}
 
 				oldStreak = newStreak;
 				oldWildyStreak = newWildyStreak;
 			});
+		}
+		// Turael skipping: SLAYER_MASTER changes before SLAYER_COUNT
+		else if (varbitChanged.getVarbitId() == VarbitID.SLAYER_MASTER)
+		{
+			String newMaster = SLAYER_MASTERS.get(varbitChanged.getValue());
+			if (!loggingIn && !taskMaster.equals("None") && newMaster.equals("Turael/Aya"))
+			{
+				clientThread.invokeLater(() -> addTaskFromCurrent(true));
+			}
+			taskMaster = newMaster;
 		}
 		// Cancel task via interface: SLAYER_COUNT_ORIGINAL does not change
 		// Complete task normally:    SLAYER_COUNT_ORIGINAL does not change
@@ -261,7 +279,6 @@ public class SlayerHistoryPlugin extends Plugin
 			folderName += "-" + Text.titleCase(profileType);
 		}
 
-		log.info("{}", folderName);
 		localStorage.setAccountFolderName(folderName);
 		loadPreviousTasks();
 	}
@@ -310,43 +327,6 @@ public class SlayerHistoryPlugin extends Plugin
 		return (String) client.getDBTableField(taskDBRow, DBTableID.SlayerTask.COL_NAME_UPPERCASE, 0)[0];
 	}
 
-	private void addTask(boolean skipped)
-	{
-		int taskId = client.getVarpValue(VarPlayerID.SLAYER_TARGET);
-
-		String taskName = getTaskName(taskId);
-		String taskMaster = SLAYER_MASTERS.get(client.getVarbitValue(VarbitID.SLAYER_MASTER));
-		if (taskName == null)
-		{
-			log.warn("Unable to find task name");
-			return;
-		}
-		log.debug("{}, {}, {}", taskName, taskMaster, taskInitialQuantity);
-
-		int streak;
-		if (taskMaster.equals("Krystilia"))
-		{
-			streak = client.getVarbitValue(VarbitID.SLAYER_WILDERNESS_TASKS_COMPLETED);
-		}
-		else
-		{
-			streak = client.getVarbitValue(VarbitID.SLAYER_TASKS_COMPLETED);
-		}
-
-		SlayerHistoryRecord record = new SlayerHistoryRecord(
-			Instant.now().toEpochMilli(),
-			taskMaster,
-			taskName,
-			taskInitialQuantity,
-			skipped,
-			streak
-		);
-		localStorage.addSlayerHistoryRecord(record);
-		panel.removeCurrent();
-		hasCurrent = false;
-		panel.addRecord(record, false);
-	}
-
 	private void addCurrentTask()
 	{
 		int taskCount = client.getVarpValue(VarPlayerID.SLAYER_COUNT);
@@ -366,7 +346,7 @@ public class SlayerHistoryPlugin extends Plugin
 		}
 		log.debug("{}, {}, {}", taskName, taskMaster, taskInitialQuantity);
 
-		SlayerHistoryRecord record = new SlayerHistoryRecord(
+		currentRecord = new SlayerHistoryRecord(
 			-1,
 			taskMaster,
 			taskName,
@@ -374,7 +354,33 @@ public class SlayerHistoryPlugin extends Plugin
 			false,
 			-1
 		);
-		panel.addRecord(record, true);
+		panel.addRecord(currentRecord, true);
 		hasCurrent = true;
+	}
+
+	private void addTaskFromCurrent(boolean skipped)
+	{
+		int streak;
+		if (currentRecord.getTaskMaster().equals("Krystilia"))
+		{
+			streak = client.getVarbitValue(VarbitID.SLAYER_WILDERNESS_TASKS_COMPLETED);
+		}
+		else
+		{
+			streak = client.getVarbitValue(VarbitID.SLAYER_TASKS_COMPLETED);
+		}
+
+		SlayerHistoryRecord record = new SlayerHistoryRecord(
+			Instant.now().toEpochMilli(),
+			currentRecord.getTaskMaster(),
+			currentRecord.getTaskName(),
+			currentRecord.getTaskQuantity(),
+			skipped,
+			streak
+		);
+		localStorage.addSlayerHistoryRecord(record);
+		panel.removeCurrent();
+		hasCurrent = false;
+		panel.addRecord(record, false);
 	}
 }
